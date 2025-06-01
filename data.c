@@ -71,13 +71,13 @@ complex get_complex(char* parse) {
     while (token != NULL) {                                                     // while there are tokens
         tokens[count] = token;                                                  // adds token to the array
         count++;                                                                // increases count  
-        token = strtok_r(NULL, ", ", &p);                                       // gets the next token
+        token = strtok_r(NULL, "+-", &p);                                       // gets the next token
     }
     if (count == 2) {
         int length = 0;
         if (!isalpha(tokens[0])) {
             for (int t1 = 0; t1 < strlen(tokens[0]); t1++) {
-                temp1[i] == tokens[0][t1];   
+                temp1[i] = tokens[0][t1];   
                 i++;
                 length++;                                    
             }
@@ -181,40 +181,8 @@ vector get_vin(char* lines, int qubits, vector vin) {                           
                 vin.length = count;                                                     // sets the length
                 for (int i = 0; i < count; i++) {                                       // iterates the tokens
                     char *t = tokens[i];                                                //assigns token to t                                                            
-                    complex value;                                                      // initializes complex number   
-                    char temp1[100];                                                    // temporary array for real part
-                    char temp2[100];                                                    // temporary array for imaginary part
-                    int i = 1;                                                          // starts from the second character
-                    int k = 0;                                                          // index of the temporary array    
-                    while (t[i] != '+' && t[i] != '-' && t[i] != ']') {                 // while the character is not +, - or ]
-                        temp1[k] = t[i];                                                // adds character to the temporary array
-                        k++;                                                            // increases index
-                        i++;                                                            // moves to the next character
-                    } 
-                    temp1[k] = '\0';                                                    // adds null terminator
-                    if (t[i] == ']') {                                                  // if the character is ]
-                        value.real = strtod(temp1, NULL);                               // converts string to double
-                        value.imag = 0.0;                                               // sets imaginary part to 0
-                        vin.values[index] = value;                                      // adds value to the input vector
-                        index++;                                                        // increases index
-                        continue;                                                       // skips to the next iteration
-                    }   
-                    temp2[0] = t[i];                                                    // adds character                                                            
-                    i++;                                                                // moves to the next character
-                    int j = 1;                                                          // index of the temporary array 
-                    if (t[i] == 'i') {                                                  // if the character is i
-                        i++;                                                            // moves to the next character
-                    }
-                    while (t[i] != ']' && t[k] != '\0') {                               // while the character is not ] or null
-                        temp2[j] = t[i];                                                // adds character
-                        i++;                                                            // moves to the next character
-                        j++;                                                            // increases index
-                    }
-                    temp2[j] = '\0';                                                    // adds null terminator
-                    value.real = strtod(temp1, NULL);                                   // converts string to double
-                    value.imag = strtod(temp2, NULL);                                   // converts string to double
-                    vin.values[index] = value;                                          // adds value to the input vector
-                    index++;                                                            // increases index
+                    complex value = get_complex(t);                                     // initializes complex number   
+
                 }                           
             }  
             break;                                                                      // breaks the loop
@@ -355,12 +323,16 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matr
                                 return circuit;                                        // returns circuit
                             }
                             else {                                                     // else
-                                complex c;                                             // initializes complex number
+                                for (int y = 0; y < columns; y++) {
+                                    complex c = get_complex(tokens_c[y]);
+                                    
+                                }   
+                                /*
                                 for (int y = 0; y < columns; y++) {
                                     char *temp = tokens_c[y];
                                     printf("temp: %s\n", temp);                                     
                                 }
-
+                                */
                             }                            
                         }
                     }
