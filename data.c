@@ -53,98 +53,166 @@ int get_qubits(char* lines) {                                                   
 }
 
 complex get_complex(char* parse) {
-    complex c;
-    char temp1[100];
-    char temp2[100];
-    int i = 0;
-    int j = 0;
-    int iter = 0;
-    if (parse[0] == '+' || parse[0] == '-') {
-        temp1[0] = parse[0]; 
-        i++;  
-        iter++;                                                                    
+    complex c = {0.0, 0.0};                                                         // initializes complex number
+    char *temp1 = malloc(100 * sizeof(char));                                       // temporary array for the real part
+    char *temp2 = malloc(100 * sizeof(char));                                       // temporary array for the imaginary part
+    if (temp1 == NULL || temp2 == NULL) {                                           // checks if memory allocation was successful
+        fprintf(stderr, "Memory allocation failed\n");                              // error
+        exit(EXIT_FAILURE);                                                         // exits the program
     }
-    int count = 0;                                                              // counter of values
-    char *p;                                                                    // pointer
-    char *token = strtok_r(parse, "+-", &p);                                      // splits the string
-    char *tokens[100];                                                          // array of tokens
-    while (token != NULL) {                                                     // while there are tokens
-        tokens[count] = token;                                                  // adds token to the array
-        count++;                                                                // increases count  
-        token = strtok_r(NULL, "+-", &p);                                       // gets the next token
+    int i = 0;                                                                      // index of the real part
+    int j = 0;                                                                      // index of the imaginary part
+    int iter = 0;                                                                   // iterator for the string
+    char *copy = strdup(parse);                                                     // copies the string
+    int count = 0;                                                                  // counter of values
+    char *p;                                                                        // pointer
+    char *token = strtok_r(parse, "+-", &p);                                        // splits the string
+    char *tokens[100];                                                              // array of tokens
+    while (token != NULL) {                                                         // while there are tokens
+        tokens[count] = token;                                                      // adds token to the array
+        count++;                                                                    // increases count  
+        token = strtok_r(NULL, "+-", &p);                                           // gets the next token
     }
-    if (count == 2) {
-        int length = 0;
-        if (!isalpha(tokens[0])) {
-            for (int t1 = 0; t1 < strlen(tokens[0]); t1++) {
-                temp1[i] = tokens[0][t1];   
-                i++;
-                length++;                                    
+    if (count == 2) {                                                               // if there are two tokens
+        int length = 0;                                                             // length of the real part
+        int check = 0;                                                              // checks if there are letters
+        for (int a = 0; a < strlen(tokens[0]); a++) {                               // iterates the first token
+            if (isalpha(tokens[0][a])) {                                            // if the character is a letter
+                check = 1;                                                          // sets check to 1
+            } 
+        }
+        if (check == 1) {                                                           // if the are letters
+            fprintf(stderr, "File format not valid\n");                             // error
+            free(temp1);                                                            // frees memory
+            free(temp2);                                                            // frees memory
+            return c;                                                               // returns complex number
+        }   
+        else {                                                                      // else
+            if (copy[0] == '+' || copy[0] == '-') {                                 // if the first character is + or -
+                temp1[0] = copy[0];                                                 // adds the first character to the temporary array
+                i++;                                                                // increases index
+                iter++;                                                             // increases iter
+            } 
+            for (int t1 = 0; t1 < strlen(tokens[0]); t1++) {                        // iterates the first token
+                temp1[i] = tokens[0][t1];                                           // adds character to the temporary array
+                i++;                                                                // increases index
+                length++;                                                           // increases length
             }
-            temp1[i] = '\0'; 
-            c.real = strtod(temp1, NULL);
-            int index = iter + length;
-            temp2[j] = parse[index];
-            j++;
-            if (strchr(tokens[1], 'i') != NULL) {
-                for (int t2 = 0; t2 < strlen(tokens[1]); t2++) {
-                    if (tokens[1][t2] == 'i') {
-                        continue;                                                   // skips i
-                    }
-                    temp2[j] = tokens[1][t2];   
-                    j++;
+            temp1[i] = '\0';                                                        // adds null terminator
+            c.real = strtod(temp1, NULL);                                           // converts string to double
+            int index = iter + length;                                              // index of the imaginary part's sign
+            temp2[j] = copy[index];                                                 // adds the first character of the imaginary part to the temporary array
+            j++;                                                                    // increases index
+            if (strchr(tokens[1], 'i') != NULL) {                                   // if the second token contains i
+                int len = 0;                                                        // length of the imaginary part
+                for (int c = 0; c < strlen(tokens[1]); c++) {                       // iterates the second token
+                    len++;                                                          // increases length
                 }
-                temp2[j] = '\0';
-                c.imag = strtod(temp2, NULL);                                      // converts string to double
-                return c;                                                          // returns complex number
+                if (len == 1 && tokens[1][0] == 'i') {                              // if the imaginary part is just i
+                    temp2[j] = '1';                                                 // sets imaginary part to 1
+                    c.imag = strtod(temp2, NULL);                                   // converts to double
+                    free(temp1);                                                    // frees memory
+                    free(temp2);                                                    // frees memory
+                    return c;                                                       // returns complex number
+                }
+                else {                                                              // else
+                    for (int t2 = 0; t2 < strlen(tokens[1]); t2++) {                // iterates the second token
+                        if (tokens[1][t2] == 'i') {                                 // if the character is i
+                            continue;                                               // skips i
+                        }
+                        temp2[j] = tokens[1][t2];                                   // adds character to the temporary array
+                        j++;                                                        // increases index
+                    }
+                    temp2[j] = '\0';                                                // adds null terminator
+                    c.imag = strtod(temp2, NULL);                                   // converts string to double
+                    free(temp1);                                                    // frees memory
+                    free(temp2);                                                    // frees memory
+                    return c;                                                       // returns complex number
+                }
             }
-            else {
-                fprintf(stderr, "File format not valid\n");                            // error 
-                return c;                                                          // returns complex number
+            else {                                                                  // else
+                fprintf(stderr, "File format not valid\n");                         // error 
+                free(temp1);                                                        // frees memory
+                free(temp2);                                                        // frees memory
+                return c;                                                           // returns complex number
+            }
+        }                                                                                    
+    }
+    else if (count == 1) {                                                          // if there is only one token
+        char *t = tokens[0];                                                        // assigns the first token to t
+        int try =  0;                                                               // checks if the first character is a letter
+        for (int b = 0; b < strlen(t); b++) {                                       // iterates the first token
+            if (isalpha(t[b])) {                                                    // if there are letters
+                try = 1;                                                            // sets try to 1
             }
         }
-        else {
-            fprintf(stderr, "File format not valid\n");                            // error
-            return c;                                                          // returns complex number
-        }                                                                                      
-    }
-    else if (count == 1) {
-        char *t = tokens[0];                                                        // assigns token to t
-        if (!isalpha(t)) {                                                      // if the first character is not a letter
+        if (try == 0) {                                                             // if there are no letters
+            if (copy[0] == '+' || copy[0] == '-') {                                 // if the first character is + or -
+                temp1[0] = copy[0];                                                 // adds the first character to the temporary array
+                i++;                                                                // increases index 
+            }
             for (int t1 = 0; t1 < strlen(t); t1++) {                                // iterates the string
-                temp1[i] = t[t1];                                                  // adds character to the temporary array
+                temp1[i] = t[t1];                                                   // adds character to the temporary array
                 i++;                                                                // increases index
             }
             temp1[i] = '\0';                                                        // adds null terminator
-            c.real = strtod(temp1, NULL);                                          // converts string to double
+            c.real = strtod(temp1, NULL);                                           // converts string to double
             c.imag = 0.0;                                                           // sets imaginary part to 0
-            return c;                                                              // returns complex number
+            free(temp1);                                                            // frees memory
+            free(temp2);                                                            // frees memory
+            return c;                                                               // returns complex number
         }
-        else {
-            if (strchr(t, 'i') != NULL) {
-                for (int t2 = 0; t2 < strlen(t); t2++) {                            // iterates the string
-                    if (t[t2] == 'i') {                                             // if the character is i
-                        continue;                                                   // skips i
-                    }
-                    temp2[j] = t[t2];                                               // adds character to the temporary array
-                    j++;                                                            // increases index
+        else {                                                                      // if there are letters
+            if (strchr(t, 'i') != NULL) {                                           // if the string contains i
+                if (copy[0] == '+' || copy[0] == '-') {                             // if the first character is + or -
+                    temp2[0] = copy[0];                                             // adds the first character to the temporary array
+                    j++;                                                            // increases index  
                 }
-                temp2[j] = '\0';                                                    // adds null terminator
-                c.real = 0.0;                                                       // sets real part to 0
-                c.imag = strtod(temp2, NULL);                                       // converts string to double
-                return c;                                                          // returns complex number
+                int len = 0;                                                        // length of the imaginary part
+                for (int c = 0; c < strlen(t); c++) {                               // iterates the string   
+                    len++;                                                          // increases length
+                }
+                if (len == 1 && t[0] == 'i') {                                      // if the imaginary part is just i
+                    temp2[j] = '1';                                                 // sets imaginary part to 1
+                    c.imag = strtod(temp2, NULL);                                   // sets imaginary part to 1
+                    free(temp1);                                                    // frees memory
+                    free(temp2);                                                    // frees memory
+                    return c;                                                       // returns complex number
+                }
+                else {                                                              // else
+                    for (int t2 = 0; t2 < strlen(t); t2++) {                        // iterates the string
+                        if (t[t2] == 'i') {                                         // if the character is i
+                            continue;                                               // skips i
+                        }
+                        temp2[j] = t[t2];                                           // adds character to the temporary array
+                        j++;                                                        // increases index
+                    }
+                    temp2[j] = '\0';                                                // adds null terminator
+                    c.real = 0.0;                                                   // sets real part to 0
+                    c.imag = strtod(temp2, NULL);                                   // converts string to double
+                    free(temp1);                                                    // frees memory
+                    free(temp2);                                                    // frees memory
+                    return c;                                                       // returns complex number
+                }
             }
-            else {
-                fprintf(stderr, "File format not valid\n");                            // error 
-                return c;                                                          // returns complex number
+            else {                                                                  // if the string doesn't contain i
+                fprintf(stderr, "File format not valid\n");                         // error 
+                free(temp1);                                                        // frees memory
+                free(temp2);                                                        // frees memory
+                return c;                                                           // returns complex number
             }
         }
     }
-    else {
-        fprintf(stderr, "File format not valid\n");                                    // error
-        return c;                                                                      // returns complex number
-
+    else {                                                                          // if there are more than two tokens
+        fprintf(stderr, "File format not valid\n");                                 // error
+        free(temp1);                                                                // frees memory
+        free(temp2);                                                                // frees memory
+        return c;                                                                   // returns complex number
     }
+    free(copy);                                                                     // frees memory      
+    free(temp1);                                                                    // frees memory
+    free(temp2);                                                                    // frees memory
+    return c;                                                                       // returns complex number
 }
 
 vector get_vin(char* lines, int qubits, vector vin) {                                   // gets the input vector
@@ -153,18 +221,17 @@ vector get_vin(char* lines, int qubits, vector vin) {                           
     while (start < strlen(lines)) {                                                     // while start is less than the length
         if (strncmp(&lines[start], "#init", 5) == 0) {                                  // if the line starts with #init
             start += 5;                                                                 // increases start by 5
-            while (lines[start] == ' ' || lines[start] == '\t') {                       // skips spaces and tabs
+            while (lines[start] == ' ' || lines[start] == '\t' || lines[start] == '[') {// skips spaces and tabs
                 start++;                                                                // moves to the next character
             }                                                             
             int end = start + 1;                                                        // starts from the next character
-            while (lines[end] != '\n' && lines[end] != '\0') {                          // skips spaces and tabs
+            while (lines[end] != '\n' && lines[end] != '\0' && lines[end] != ']') {     // skips spaces and tabs
                 end++;                                                                  // moves to the next character  
             }
             char str[100];                                                              // array
             int len = end - start;                                                      // length of the string
             strncpy(str, &lines[start], len);                                           // copies the string
-            str[len] = '\0';                                                            // adds null terminator
-            
+            str[len] = '\0';                                                            // adds null terminator            
             int count = 0;                                                              // counter of values
             char *p;                                                                    // pointer
             char *token = strtok_r(str, ", ", &p);                                      // splits the string
@@ -172,6 +239,7 @@ vector get_vin(char* lines, int qubits, vector vin) {                           
             while (token != NULL) {                                                     // while there are tokens
                 tokens[count] = token;                                                  // adds token to the array
                 count++;                                                                // increases count  
+
                 token = strtok_r(NULL, ", ", &p);                                       // gets the next token
             }
             if (count != (int)pow(2, qubits)) {                                         // if values is not equal to 2^qubits
@@ -182,7 +250,8 @@ vector get_vin(char* lines, int qubits, vector vin) {                           
                 for (int i = 0; i < count; i++) {                                       // iterates the tokens
                     char *t = tokens[i];                                                //assigns token to t                                                            
                     complex value = get_complex(t);                                     // initializes complex number   
-
+                    vin.values[index] = value;                                          // adds value to the input vector
+                    index++;                                                            // increases index
                 }                           
             }  
             break;                                                                      // breaks the loop
@@ -323,9 +392,19 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matr
                                 return circuit;                                        // returns circuit
                             }
                             else {                                                     // else
-                                for (int y = 0; y < columns; y++) {
+                                for (int y = 0; y < columns; y++) {                    // while y is less than columns
                                     complex c = get_complex(tokens_c[y]);
-                                    
+                                    row.length = columns;
+                                    for (int v = 0; v < row.length; v++) {
+                                        row.values[v] = c;
+                                        for (int n = 0; n < rows; n++) {
+                                            m.rows[n] = row;
+                                            for (int c = 0; c < strlen(order); c++) {
+                                                circuit.cir[c] = m;
+                                                //printf("Circuit[%d][%d] = %lf + %lfi\n", n, v, m.rows[n].values[v].real, m.rows[n].values[v].imag);
+                                            }
+                                        }
+                                    }
                                 }   
                                 /*
                                 for (int y = 0; y < columns; y++) {
@@ -336,9 +415,9 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matr
                             }                            
                         }
                     }
-                    j++;                                                               // moves to the next character in the order
-                    if (order[j] == '\0') {                                            // if the order ends
-                        return circuit;                                                // returns circuit
+                    j++;                                                                // moves to the next character in the order
+                    if (order[j] == '\0') {                                             // if the order ends
+                        return circuit;                                                 // returns circuit
                     }                   
                 }
                 while (lines[i] != '\n' && lines[i] != '\0') {                          // skips spaces and tabs
