@@ -42,5 +42,9 @@ int main() {
     row.values = malloc(len * sizeof(complex));
     circuit = get_matrices(lines2, qubits, order, circuit, m, row);
 
+    print_c(circuit, order, qubits);
+    free(m.rows);
+    free(row.values);
+
     return 0;              
 }

@@ -391,20 +391,21 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matr
                                 fprintf(stderr, "File format not valid\n");            // error
                                 return circuit;                                        // returns circuit
                             }
-                            else {                                                     // else
+                            else {                                                     // else   
                                 for (int y = 0; y < columns; y++) {                    // while y is less than columns
                                     complex c = get_complex(tokens_c[y]);
+                                    printf("c: %lf + %lfi\n", c.real, c.imag); // prints the complex number
                                     row.length = columns;
                                     for (int v = 0; v < row.length; v++) {
                                         row.values[v] = c;
-                                        for (int n = 0; n < rows; n++) {
-                                            m.rows[n] = row;
-                                            for (int c = 0; c < strlen(order); c++) {
-                                                circuit.cir[c] = m;
-                                                //printf("Circuit[%d][%d] = %lf + %lfi\n", n, v, m.rows[n].values[v].real, m.rows[n].values[v].imag);
-                                            }
-                                        }
                                     }
+                                    for (int n = 0; n < rows; n++) {
+                                        m.rows[n] = row;
+                                    }
+                                    for (int c = 0; c < strlen(order); c++) {
+                                        circuit.cir[c] = m;
+                                    }
+                                    return circuit;                                 // returns circuit
                                 }   
                                 /*
                                 for (int y = 0; y < columns; y++) {
@@ -433,4 +434,20 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matr
         }
     }
     return circuit;                                                                     // returns circuit
+}
+
+void print_c(circuit circuit, char* order, int qubits) { 
+    for (int i = 0; i < strlen(order); i++) {
+        for (int j = 0; j < (int)pow(2, qubits); j++) {
+            for (int k = 0; k < (int)pow(2, qubits); k++) {
+                if (circuit.cir[i].rows[j].values[k].imag < 0) {                       // if the imaginary part is negative
+                    printf("%lf - %lfi ", circuit.cir[i].rows[j].values[k].real, -circuit.cir[i].rows[j].values[k].imag); // prints the complex number
+                } else {                                                                // if the imaginary part is positive
+                    printf("%lf + %lfi ", circuit.cir[i].rows[j].values[k].real, circuit.cir[i].rows[j].values[k].imag); // prints the complex number
+                }
+            }
+            printf("\n");                                                              // new line after each row
+        }
+        printf("\n");   
+    }
 }
