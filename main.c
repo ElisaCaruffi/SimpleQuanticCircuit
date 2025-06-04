@@ -36,13 +36,14 @@ int main() {
     // gets the order from the circ file
     char order[100];
     get_order(lines2, order);
-    printf("Order: %s\n", order);
+
     // inverts the order of the circuit
     for (int i = 0; i < strlen(order) / 2; i++) {
         char temp = order[i];
         order[i] = order[strlen(order) - 1 - i];
         order[strlen(order) - 1 - i] = temp;
     }
+    printf("Order: %s\n", order);
     // gets the matrices from the circ file
     circuit all_circ;
     all_circ.cir = malloc(strlen(order) * sizeof(matrix));
@@ -55,23 +56,43 @@ int main() {
     // multiplies the matrices
     matrix product;
     product.rows = malloc(len * sizeof(vector));
+    for (int i = 0; i < len; i++) {
+        product.rows[i].values = malloc(len * sizeof(complex));
+    }
+    matrix result;
+    result.rows = malloc(len * sizeof(vector));
+    for (int i = 0; i < len; i++) {
+        result.rows[i].values = malloc(len * sizeof(complex));
+    }
     matrix temp;
     temp.rows = malloc(len * sizeof(vector));
     for (int i = 0; i < len; i++) {
         temp.rows[i].values = malloc(len * sizeof(complex));
     }
-    product = get_product(all_circ, qubits, temp, order);
+    product = get_product(all_circ, qubits, temp, result, order);
+    //m_mult(all_circ.cir[0], all_circ.cir[1], &product, qubits);
+    /*
     for (int i = 0; i < len; i++) {
         for (int j = 0; j < len; j++) {
             printf("%lf + %lfi ", product.rows[i].values[j].real, product.rows[i].values[j].imag);
         }
         printf("\n");
     }
+    */
     /*
     // gets the output vector
     vector vout;
     vout.values = malloc(len * sizeof(complex));
     vout = get_vout(product, vin, qubits, vout);
     */
+    for (int i = 0; i < len; i++) {
+        free(temp.rows[i].values);
+    }
+    free(temp.rows);
+    for (int i = 0; i < len; i++) {
+        free(product.rows[i].values);
+    }
+    free(product.rows);
+
     return 0;              
 }

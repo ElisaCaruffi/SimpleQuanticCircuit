@@ -427,7 +427,7 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
     }
     return all_circ;                                                                     // returns circuit
 }
-/*
+
 void print_c(circuit all_circ, char* order, int qubits) { 
     for (int i = 0; i < strlen(order); i++) {
         for (int j = 0; j < (int)pow(2, qubits); j++) {
@@ -443,4 +443,3 @@ void print_c(circuit all_circ, char* order, int qubits) {
         printf("\n");   
     }
 }
-*/
