@@ -71,12 +71,11 @@ matrix get_product(circuit all_circ, int qubits, matrix temp, matrix result, cha
 vector get_vout(matrix product, vector vin, int qubits, vector vout) {
     int len = (int)pow(2, qubits);
     for (int i = 0; i < len; i++) {                                         // iterates rows
+        complex c = {0.0, 0.0};
         for (int j = 0; j < len; j++) {                                     // iterates columns
-            complex c = {0.0, 0.0};
-            for (int k = 0; k < len; k++) {
-                c = c_sum(c, c_multiply(m1.rows[i].values[k], m2.rows[k].values[j]));
-            }
-            res -> rows[i].values[j] = c;
+            c = c_sum(c, c_multiply(product.rows[i].values[j], vin.values[j]));
         }
+        vout.values[i] = c;
     }
+    return vout;
 }

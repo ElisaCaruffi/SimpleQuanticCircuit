@@ -79,12 +79,15 @@ int main() {
         printf("\n");
     }
     */
-    /*
+    
     // gets the output vector
     vector vout;
     vout.values = malloc(len * sizeof(complex));
     vout = get_vout(product, vin, qubits, vout);
-    */
+    for (int i = 0; i<len; i++) {
+        printf("%lf + %lfi\n", vout.values[i].real, vout.values[i].imag);
+    }
+    // frees memory
     for (int i = 0; i < len; i++) {
         free(temp.rows[i].values);
     }
