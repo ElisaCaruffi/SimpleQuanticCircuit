@@ -248,7 +248,7 @@ vector get_vin(char* lines, int qubits, vector vin) {                           
             else {                                                                      // else
                 vin.length = count;                                                     // sets the length
                 for (int i = 0; i < count; i++) {                                       // iterates the tokens
-                    char *t = tokens[i];                                                //assigns token to t                                                            
+                    char *t = tokens[i];                                                // assigns token to t                                                            
                     complex value = get_complex(t);                                     // initializes complex number   
                     vin.values[index] = value;                                          // adds value to the input vector
                     index++;                                                            // increases index
@@ -303,7 +303,7 @@ void get_order(char* lines, char* order) {                                      
     }
 }
 
-circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matrix m, vector row) {
+circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, matrix m, vector row) {
     int count = 0;                                                                      // counter of matrices
     int index = 0;                                                                      // index of the lines
     while (lines[index] != '\0') {                                                      // while lines doesn't end
@@ -320,130 +320,125 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matr
     }
     if (count != strlen(order)) {                                                      // if the quantity isn't equal to the length of the order
         fprintf(stderr, "File format not valid\n");                                    // error
-        return circuit;                                                                // returns circuit
+        return all_circ;                                                               // returns circuit
     }
     else {                                                                             // else
-        int i = 0;                                                                     // index of the lines
-        int j = 0;
-        while (lines[i] != '\0') {                                                     // while lines doesn't end
-            char *l = &lines[i];                                                       // pointer to the current line
-            if (strncmp(l, "#define", 7) == 0) {                                       // if the line starts with #define
-                int start = 8;                                                         // starts from the 9th character
-                while (l[start] == ' ' || l[start] == '\t') {                          // skips spaces or tabs
-                    start++;                                                           // moves to the next character 
-                }
-                int end = start + 1;                                                   // starts from the next character
-                while (l[end] != ' ' && l[end] != '\t') {                              // skips spaces and tabs       
-                    end++;                                                             // moves to the next character     
-                }
-                int len = end - start;                                                 // length of the string
-                char str[100];                                                         // array
-                strncpy(str, &l[start], len);                                          // copies the string
-                str[len] = '\0';                                                       // adds null terminator
+        for (int j = 0; j < strlen(order); j++) {
+            printf("j: %i\n", j);
+            if (order[j] == '\0') {                                                    // if the order ends
+                return all_circ;                                                       // returns circuit
+            }
+            int i = 0;                                                                     // index of the lines
+            while (lines[i] != '\0') {                                                     // while lines doesn't end
+                char *l = &lines[i];                                                       // pointer to the current line
+                if (strncmp(l, "#define", 7) == 0) {                                       // if the line starts with #define
+                    int start = 8;                                                         // starts from the 9th character
+                    while (l[start] == ' ' || l[start] == '\t') {                          // skips spaces or tabs
+                        start++;                                                           // moves to the next character 
+                    }
+                    int end = start + 1;                                                   // starts from the next character
+                    while (l[end] != ' ' && l[end] != '\t') {                              // skips spaces and tabs       
+                        end++;                                                             // moves to the next character     
+                    }
+                    int len = end - start;                                                 // length of the string
+                    char str[100];                                                         // array
+                    strncpy(str, &l[start], len);                                          // copies the string
+                    str[len] = '\0';                                                       // adds null terminator
 
-                if (strlen(str) == 1 && str[0] == order[j]) {                          // if the order matches the string
-                    int s = end;                                                       // starts from the next character
-                    while (l[s] != '[' && l[s] != '\0') {                              // skips spaces, tabs and (                     
-                        s++;                                                           // moves to the next character         
-                    }
-                    s++;
-                    int e = s;                                                         // starts from the next character
-                    while (l[e] != ']' && l[e] != '\0') {                              // while the character is not )
-                        e++;                                                           // moves to the next character       
-                    }
-                    int mat_l = e - s;                                                 // length of the matrix
-                    char mat[100];                                                     // array for the matrix
-                    strncpy(mat, &l[s], mat_l);                                        // copies the matrix
-                    mat[mat_l] = '\0';                                                 // adds null terminator
-                    int count_r = 0;                                                   // counter of rows       
-                    char *p_r;                                                         // pointer for strtok_r           
-                    char *token_r = strtok_r(mat, ")", &p_r);                          // splits the matrix into rows              
-                    char *tokens_r[100];                                               // array of tokens for rows
-                    int rows = 0;                                                      // counter of rows
-                    while (token_r != NULL) {                                          // while there are tokens  
-                        while (*token_r == ' ' || *token_r == '(') {
-                            token_r++;
-                        }     
-                        tokens_r[count_r] = token_r;                                   // adds token to the array              
-                        count_r++;                                                     // increases counter
-                        rows++;                                                        // increases rows          
-                        token_r = strtok_r(NULL, ")", &p_r);                           // gets the next token             
-                    }
-                    if (rows != (int)pow(2, qubits)) {                                 // if the number of rows is not 2^qubits              
-                        fprintf(stderr, "File format not valid\n");                    // error        
-                        return circuit;                                                // returns circuit    
-                    }
-                    else {                                                             // else                                               
-                        for (int k = 0; k < rows; k++) {                               // while k is less than rows
-                            char *r = tokens_r[k];                                     // pointer to the current row
-                            int count_c = 0;                                           // counter of columns
-                            char *p_c;                                                 // pointer for strtok_r
-                            char *token_c = strtok_r(r, ",", &p_c);                    // splits the row into columns
-                            char *tokens_c[100];                                       // array of tokens for columns
-                            int columns = 0;                                           // counter of columns
-                            while (token_c != NULL) {                                  // while there are tokens   
-                                tokens_c[count_c] = token_c;                           // adds token to the array                  
-                                count_c++;                                             // increases counter
-                                columns++;                                             // increases columns             
-                                token_c = strtok_r(NULL, ",", &p_c);                   // gets the next token                   
-                            }
-                            if (columns != rows) {                                     // if the number of columns is not the number of rows
-                                fprintf(stderr, "File format not valid\n");            // error
-                                return circuit;                                        // returns circuit
-                            }
-                            else {                                                     // else   
-                                for (int y = 0; y < columns; y++) {                    // while y is less than columns
-                                    complex c = get_complex(tokens_c[y]);
-                                    printf("c: %lf + %lfi\n", c.real, c.imag); // prints the complex number
-                                    row.length = columns;
-                                    for (int v = 0; v < row.length; v++) {
-                                        row.values[v] = c;
-                                    }
-                                    for (int n = 0; n < rows; n++) {
-                                        m.rows[n] = row;
-                                    }
-                                    for (int c = 0; c < strlen(order); c++) {
-                                        circuit.cir[c] = m;
-                                    }
-                                    return circuit;                                 // returns circuit
-                                }   
-                                /*
-                                for (int y = 0; y < columns; y++) {
-                                    char *temp = tokens_c[y];
-                                    printf("temp: %s\n", temp);                                     
-                                }
-                                */
-                            }                            
+                    if (strlen(str) == 1 && str[0] == order[j]) {                          // if the order matches the string
+                        int s = end;                                                       // starts from the next character
+                        while (l[s] != '[' && l[s] != '\0') {                              // skips spaces, tabs and (                     
+                            s++;                                                           // moves to the next character         
                         }
+                        s++;
+                        int e = s;                                                         // starts from the next character
+                        while (l[e] != ']' && l[e] != '\0') {                              // while the character is not )
+                            e++;                                                           // moves to the next character       
+                        }
+                        int mat_l = e - s;                                                 // length of the matrix
+                        char mat[100];                                                     // array for the matrix
+                        strncpy(mat, &l[s], mat_l);                                        // copies the matrix
+                        mat[mat_l] = '\0';                                                 // adds null terminator
+                        int count_r = 0;                                                   // counter of rows       
+                        char *p_r;                                                         // pointer for strtok_r           
+                        char *token_r = strtok_r(mat, ")", &p_r);                          // splits the matrix into rows              
+                        char *tokens_r[100];                                               // array of tokens for rows
+                        int rows = 0;                                                      // counter of rows
+                        while (token_r != NULL) {                                          // while there are tokens  
+                            while (*token_r == ' ' || *token_r == '(') {
+                                token_r++;
+                            }     
+                            tokens_r[count_r] = token_r;                                   // adds token to the array              
+                            count_r++;                                                     // increases counter
+                            rows++;                                                        // increases rows          
+                            token_r = strtok_r(NULL, ")", &p_r);                           // gets the next token             
+                        }
+                        if (rows != (int)pow(2, qubits)) {                                 // if the number of rows is not 2^qubits              
+                            fprintf(stderr, "File format not valid\n");                    // error        
+                            return all_circ;                                                // returns circuit    
+                        }
+                        else {                                                             // else  
+                            matrix new_m;
+                            new_m.rows = malloc(rows * sizeof(vector));                                             
+                            for (int k = 0; k < rows; k++) {                               // while k is less than rows
+                                printf("k: %i\n", k);
+                                char *r = tokens_r[k];                                     // pointer to the current row
+                                int count_c = 0;                                           // counter of columns
+                                char *p_c;                                                 // pointer for strtok_r
+                                char *token_c = strtok_r(r, ",", &p_c);                    // splits the row into columns
+                                char *tokens_c[100];                                       // array of tokens for columns
+                                int columns = 0;                                           // counter of columns
+                                while (token_c != NULL) {                                  // while there are tokens   
+                                    tokens_c[count_c] = token_c;                           // adds token to the array                  
+                                    count_c++;                                             // increases counter
+                                    columns++;                                             // increases columns             
+                                    token_c = strtok_r(NULL, ",", &p_c);                   // gets the next token                   
+                                }
+                                if (columns != rows) {                                     // if the number of columns is not the number of rows
+                                    fprintf(stderr, "File format not valid\n");            // error
+                                    for (int free_r = 0; free_r < k; free_r++) {
+                                        free(new_m.rows[free_r].values);
+                                    }
+                                    free(new_m.rows);
+                                    return all_circ;
+                                }
+                                else {                                                     // else   
+                                    new_m.rows[k].length = columns;
+                                    new_m.rows[k].values = malloc(columns * sizeof(complex));
+                                    for (int y = 0; y < columns; y++) {
+                                        printf("y: %i\n", y);
+                                        complex c = get_complex(tokens_c[y]);
+                                        new_m.rows[k].values[y] = c;
+                                    }
+                                }                            
+                            }
+                            all_circ.cir[j] = new_m; 
+                        }                                     
                     }
-                    j++;                                                                // moves to the next character in the order
-                    if (order[j] == '\0') {                                             // if the order ends
-                        return circuit;                                                 // returns circuit
-                    }                   
+                    while (lines[i] != '\n' && lines[i] != '\0') {                          // skips spaces and tabs
+                        i++;                                                                // moves to the next character
+                    }
+                    if (lines[i] == '\n') {                                                 // if the line ends
+                        i++;                                                                // moves to the next character
+                    }
                 }
-                while (lines[i] != '\n' && lines[i] != '\0') {                          // skips spaces and tabs
-                    i++;                                                                // moves to the next character
-                }
-                if (lines[i] == '\n') {                                                 // if the line ends
-                    i++;                                                                // moves to the next character
+                else {                                                                      // if the line doesn't start with #define
+                    i++;                                                                    // moves to the next character
                 }
             }
-            else {                                                                      // if the line doesn't start with #define
-                i++;                                                                    // moves to the next character
-            }
-        }
+        }        
     }
-    return circuit;                                                                     // returns circuit
+    return all_circ;                                                                     // returns circuit
 }
 
-void print_c(circuit circuit, char* order, int qubits) { 
+void print_c(circuit all_circ, char* order, int qubits) { 
     for (int i = 0; i < strlen(order); i++) {
         for (int j = 0; j < (int)pow(2, qubits); j++) {
             for (int k = 0; k < (int)pow(2, qubits); k++) {
-                if (circuit.cir[i].rows[j].values[k].imag < 0) {                       // if the imaginary part is negative
-                    printf("%lf - %lfi ", circuit.cir[i].rows[j].values[k].real, -circuit.cir[i].rows[j].values[k].imag); // prints the complex number
+                if (all_circ.cir[i].rows[j].values[k].imag < 0) {                       // if the imaginary part is negative
+                    printf("%lf - %lfi ", all_circ.cir[i].rows[j].values[k].real, -all_circ.cir[i].rows[j].values[k].imag); // prints the complex number
                 } else {                                                                // if the imaginary part is positive
-                    printf("%lf + %lfi ", circuit.cir[i].rows[j].values[k].real, circuit.cir[i].rows[j].values[k].imag); // prints the complex number
+                    printf("%lf + %lfi ", all_circ.cir[i].rows[j].values[k].real, all_circ.cir[i].rows[j].values[k].imag); // prints the complex number
                 }
             }
             printf("\n");                                                              // new line after each row

@@ -25,7 +25,7 @@ int get_qubits(char* lines);
 complex get_complex(char* parse);
 vector get_vin(char* lines, int qubits, vector vin);
 void get_order(char* lines, char* order);
-circuit get_matrices(char* lines, int qubits, char* order, circuit circuit, matrix m, vector row);
-void print_c(circuit circuit, char* order, int qubits);
+circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, matrix m, vector row);
+void print_c(circuit all_circ, char* order, int qubits);
 
 #endif

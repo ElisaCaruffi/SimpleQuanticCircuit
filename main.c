@@ -34,17 +34,22 @@ int main() {
     get_order(lines2, order);
     printf("Order: %s\n", order);
 
-    circuit circuit;
-    circuit.cir = malloc(strlen(order) * sizeof(matrix));
-    matrix m;
-    m.rows = malloc(strlen(order) * sizeof(vector));
-    vector row;
-    row.values = malloc(len * sizeof(complex));
-    circuit = get_matrices(lines2, qubits, order, circuit, m, row);
+    circuit all_circ;
+    all_circ.cir = malloc(strlen(order) * sizeof(matrix));
+    if (!all_circ.cir) {
+        fprintf(stderr, "malloc failed\n");
+        return 1;
+    }
+    all_circ = get_matrices(lines2, qubits, order, all_circ, (matrix){0}, (vector){0});
 
-    print_c(circuit, order, qubits);
-    free(m.rows);
-    free(row.values);
+    print_c(all_circ, order, qubits);
+    for (size_t i = 0; i < strlen(order); i++) {
+        for (int j = 0; j < len; j++) {
+            free(all_circ.cir[i].rows[j].values);
+        }
+        free(all_circ.cir[i].rows);
+    }
+    free(all_circ.cir);
 
     return 0;              
 }
