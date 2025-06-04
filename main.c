@@ -51,23 +51,27 @@ int main() {
         return 1;
     }
     all_circ = get_matrices(lines2, qubits, order, all_circ, (matrix){0}, (vector){0});
-
-    print_c(all_circ, order, qubits);
-    for (size_t i = 0; i < strlen(order); i++) {
-        for (int j = 0; j < len; j++) {
-            free(all_circ.cir[i].rows[j].values);
-        }
-        free(all_circ.cir[i].rows);
-    }
-    free(all_circ.cir);
+    //print_c(all_circ, order, qubits);
     // multiplies the matrices
     matrix product;
     product.rows = malloc(len * sizeof(vector));
-    product = get_product(all_circ, qubits, product);
+    matrix temp;
+    temp.rows = malloc(len * sizeof(vector));
+    for (int i = 0; i < len; i++) {
+        temp.rows[i].values = malloc(len * sizeof(complex));
+    }
+    product = get_product(all_circ, qubits, temp, order);
+    for (int i = 0; i < len; i++) {
+        for (int j = 0; j < len; j++) {
+            printf("%lf + %lfi ", product.rows[i].values[j].real, product.rows[i].values[j].imag);
+        }
+        printf("\n");
+    }
+    /*
     // gets the output vector
     vector vout;
     vout.values = malloc(len * sizeof(complex));
     vout = get_vout(product, vin, qubits, vout);
-
+    */
     return 0;              
 }

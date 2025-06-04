@@ -1,9 +1,11 @@
 #ifndef RESULT_H
 #define RESULT_H
+#include "data.h"
 
-complex multiply(complex c1, complex c2);
-complex sum(complex c1, complex c2);
-matrix get_product(circuit all_circ, int qubits, matrix product);
+complex c_multiply(complex c1, complex c2);
+complex c_sum(complex c1, complex c2);
+matrix m_mult(matrix m1, matrix m2, matrix result, int qubits);
+matrix get_product(circuit all_circ, int qubits, matrix temp, char* order);
 vector get_vout(matrix product, vector vin, int qubits, vector vout);
 
 #endif
