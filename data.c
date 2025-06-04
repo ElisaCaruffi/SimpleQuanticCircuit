@@ -318,15 +318,14 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
             index++;                                                                    // moves to the next character
         }
     }
-    if (count != strlen(order)) {                                                      // if the quantity isn't equal to the length of the order
-        fprintf(stderr, "File format not valid\n");                                    // error
-        return all_circ;                                                               // returns circuit
+    if (count != strlen(order)) {                                                       // if the quantity isn't equal to the length of the order
+        fprintf(stderr, "File format not valid\n");                                     // error
+        return all_circ;                                                                // returns circuit
     }
-    else {                                                                             // else
-        for (int j = 0; j < strlen(order); j++) {
-            printf("j: %i\n", j);
-            if (order[j] == '\0') {                                                    // if the order ends
-                return all_circ;                                                       // returns circuit
+    else {                                                                              // else
+        for (int j = 0; j < strlen(order); j++) {                                       // iterates the order
+            if (order[j] == '\0') {                                                     // if the order ends
+                return all_circ;                                                        // returns circuit
             }
             int i = 0;                                                                     // index of the lines
             while (lines[i] != '\0') {                                                     // while lines doesn't end
@@ -365,8 +364,8 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
                         char *tokens_r[100];                                               // array of tokens for rows
                         int rows = 0;                                                      // counter of rows
                         while (token_r != NULL) {                                          // while there are tokens  
-                            while (*token_r == ' ' || *token_r == '(') {
-                                token_r++;
+                            while (*token_r == ' ' || *token_r == '(') {                   // skips spaces and (
+                                token_r++;                                                 // moves to the next character
                             }     
                             tokens_r[count_r] = token_r;                                   // adds token to the array              
                             count_r++;                                                     // increases counter
@@ -375,13 +374,12 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
                         }
                         if (rows != (int)pow(2, qubits)) {                                 // if the number of rows is not 2^qubits              
                             fprintf(stderr, "File format not valid\n");                    // error        
-                            return all_circ;                                                // returns circuit    
+                            return all_circ;                                               // returns circuit    
                         }
                         else {                                                             // else  
-                            matrix new_m;
-                            new_m.rows = malloc(rows * sizeof(vector));                                             
+                            matrix new_m;                                                  // initializes matrix
+                            new_m.rows = malloc(rows * sizeof(vector));                    // allocates memory for the rows                      
                             for (int k = 0; k < rows; k++) {                               // while k is less than rows
-                                printf("k: %i\n", k);
                                 char *r = tokens_r[k];                                     // pointer to the current row
                                 int count_c = 0;                                           // counter of columns
                                 char *p_c;                                                 // pointer for strtok_r
@@ -396,23 +394,22 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
                                 }
                                 if (columns != rows) {                                     // if the number of columns is not the number of rows
                                     fprintf(stderr, "File format not valid\n");            // error
-                                    for (int free_r = 0; free_r < k; free_r++) {
-                                        free(new_m.rows[free_r].values);
+                                    for (int free_r = 0; free_r < k; free_r++) {           // frees memory for the previous rows
+                                        free(new_m.rows[free_r].values);                   // frees memory for the values
                                     }
-                                    free(new_m.rows);
-                                    return all_circ;
+                                    free(new_m.rows);                                      // frees memory for the rows
+                                    return all_circ;                                       // returns circuit
                                 }
-                                else {                                                     // else   
-                                    new_m.rows[k].length = columns;
-                                    new_m.rows[k].values = malloc(columns * sizeof(complex));
-                                    for (int y = 0; y < columns; y++) {
-                                        printf("y: %i\n", y);
-                                        complex c = get_complex(tokens_c[y]);
-                                        new_m.rows[k].values[y] = c;
+                                else {                                                          // else   
+                                    new_m.rows[k].length = columns;                             // sets the length of the row
+                                    new_m.rows[k].values = malloc(columns * sizeof(complex));   // allocates memory for the values
+                                    for (int y = 0; y < columns; y++) {                         // while y is less than columns
+                                        complex c = get_complex(tokens_c[y]);                   // gets the complex number
+                                        new_m.rows[k].values[y] = c;                            // adds the complex number to the row
                                     }
                                 }                            
                             }
-                            all_circ.cir[j] = new_m; 
+                            all_circ.cir[j] = new_m;                                        // adds the matrix to the circuit
                         }                                     
                     }
                     while (lines[i] != '\n' && lines[i] != '\0') {                          // skips spaces and tabs
@@ -435,13 +432,13 @@ void print_c(circuit all_circ, char* order, int qubits) {
     for (int i = 0; i < strlen(order); i++) {
         for (int j = 0; j < (int)pow(2, qubits); j++) {
             for (int k = 0; k < (int)pow(2, qubits); k++) {
-                if (all_circ.cir[i].rows[j].values[k].imag < 0) {                       // if the imaginary part is negative
-                    printf("%lf - %lfi ", all_circ.cir[i].rows[j].values[k].real, -all_circ.cir[i].rows[j].values[k].imag); // prints the complex number
-                } else {                                                                // if the imaginary part is positive
-                    printf("%lf + %lfi ", all_circ.cir[i].rows[j].values[k].real, all_circ.cir[i].rows[j].values[k].imag); // prints the complex number
+                if (all_circ.cir[i].rows[j].values[k].imag < 0) {                      
+                    printf("%lf - %lfi ", all_circ.cir[i].rows[j].values[k].real, -all_circ.cir[i].rows[j].values[k].imag); 
+                } else {                                                                
+                    printf("%lf + %lfi ", all_circ.cir[i].rows[j].values[k].real, all_circ.cir[i].rows[j].values[k].imag); 
                 }
             }
-            printf("\n");                                                              // new line after each row
+            printf("\n");                                                              
         }
         printf("\n");   
     }
