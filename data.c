@@ -292,7 +292,7 @@ void get_order(char* lines, char* order) {                                      
                 }
                 i++;                                                                    // moves to the next character
             }   
-            order[j] = '\0';                                                            // adds null terminator       
+            order[j] = '\0';                                                            // adds null terminator      
         }
         while (lines[index] != '\n' && lines[index] != '\0') {                          // skips spaces and tabs    
             index++;                                                                    // moves to the next character

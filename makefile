@@ -1,7 +1,7 @@
 COMP = gcc -Wall
 LDFLAGS = -lm
 
-SRCS = main.c data.c
+SRCS = main.c data.c result.c
 OBJS = $(SRCS:.c=.o)
 
 TARGET = eseguito.out
