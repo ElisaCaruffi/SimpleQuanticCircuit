@@ -40,7 +40,7 @@ int get_qubits(char* lines) {                                                   
         for (int i = 0; i < len; i++) {                                                 // iterates the string
             if (isdigit(str[i]) == 0) {                                                 // if a character is not a digit
                 fprintf(stderr, "File format not valid\n");                             // error
-                return -1;                                                              // returns -1 s
+                return -1;                                                              // returns -1
             }
         }
         int qubits = (int)strtol(str, NULL, 10);                                        // converts string to integer   
@@ -425,10 +425,10 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
             }
         }        
     }
-    return all_circ;                                                                     // returns circuit
+    return all_circ;                                                                        // returns circuit
 }
 
-void print_c(circuit all_circ, char* order, int qubits) { 
+void print_c(circuit all_circ, char* order, int qubits) {                                   // print all the matrices
     for (int i = 0; i < strlen(order); i++) {
         for (int j = 0; j < (int)pow(2, qubits); j++) {
             for (int k = 0; k < (int)pow(2, qubits); k++) {
