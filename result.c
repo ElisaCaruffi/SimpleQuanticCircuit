@@ -35,16 +35,16 @@ void m_mult(matrix m1, matrix m2, matrix *res, int qubits) {                    
 }
 
 void copy_vector(vector* out, vector in, int qubits) {                                      // copies the vector
-    int len = (int)pow(2, qubits);                                                          
-    for (int i = 0; i<len; i++) {
-        out -> values[i] = in.values[i];
+    int len = (int)pow(2, qubits);                                                          // number of rows or columns
+    for (int i = 0; i<len; i++) {                                                           // iterates
+        out -> values[i] = in.values[i];                                                    // assigns vector
     }
 }
 
 void copy_matrix(matrix* out, matrix in, int qubits) {                                      // copies the matrix
-    int len = (int)pow(2, qubits);
-    for (int i = 0; i<len; i++) {
-        copy_vector(&out -> rows[i], in.rows[i], qubits);
+    int len = (int)pow(2, qubits);                                                          // number of rows or columns
+    for (int i = 0; i<len; i++) {                                                           // iterates
+        copy_vector(&out -> rows[i], in.rows[i], qubits);                                   // asiigns the matrix
     }
 }
 
