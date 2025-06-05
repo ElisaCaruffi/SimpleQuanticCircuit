@@ -14,12 +14,14 @@ int main() {
     read_file(init, lines);  
     // gets the qubits from the init file
     int qubits;
-    qubits = get_qubits(lines);    
+    qubits = get_qubits(lines);  
+    printf("The qubits' number is: %i\n", qubits);  
     // gets the input vector from the init file
     int len = (int)pow(2, qubits);
     vector vin;
     vin.values = malloc(len * sizeof(complex));
     vin = get_vin(lines, qubits, vin);
+    printf("The input vector is:\n");
     for (int i = 0; i<vin.length; i++) {
         if (vin.values[i].imag < 0) {
             printf("%lf - %lfi\n", vin.values[i].real, -vin.values[i].imag);
@@ -43,7 +45,7 @@ int main() {
         order[i] = order[strlen(order) - 1 - i];
         order[strlen(order) - 1 - i] = temp;
     }
-    printf("Order: %s\n", order);
+    printf("The multiplication order: %s\n", order);
     // gets the matrices from the circ file
     circuit all_circ;
     all_circ.cir = malloc(strlen(order) * sizeof(matrix));
@@ -52,7 +54,8 @@ int main() {
         return 1;
     }
     all_circ = get_matrices(lines2, qubits, order, all_circ, (matrix){0}, (vector){0});
-    //print_c(all_circ, order, qubits);
+    printf("The matrices are:\n");
+    print_c(all_circ, order, qubits);
     // multiplies the matrices
     matrix product;
     product.rows = malloc(len * sizeof(vector));
@@ -70,20 +73,13 @@ int main() {
         temp.rows[i].values = malloc(len * sizeof(complex));
     }
     product = get_product(all_circ, qubits, temp, result, order);
-    //m_mult(all_circ.cir[0], all_circ.cir[1], &product, qubits);
-    /*
-    for (int i = 0; i < len; i++) {
-        for (int j = 0; j < len; j++) {
-            printf("%lf + %lfi ", product.rows[i].values[j].real, product.rows[i].values[j].imag);
-        }
-        printf("\n");
-    }
-    */
-    
+
+
     // gets the output vector
     vector vout;
     vout.values = malloc(len * sizeof(complex));
     vout = get_vout(product, vin, qubits, vout);
+    printf("The output vector is:\n");
     for (int i = 0; i<len; i++) {
         printf("%lf + %lfi\n", vout.values[i].real, vout.values[i].imag);
     }

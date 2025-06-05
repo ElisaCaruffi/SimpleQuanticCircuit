@@ -383,14 +383,14 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
                                 char *r = tokens_r[k];                                     // pointer to the current row
                                 int count_c = 0;                                           // counter of columns
                                 char *p_c;                                                 // pointer for strtok_r
-                                char *token_c = strtok_r(r, ",", &p_c);                    // splits the row into columns
+                                char *token_c = strtok_r(r, ", ", &p_c);                    // splits the row into columns
                                 char *tokens_c[100];                                       // array of tokens for columns
                                 int columns = 0;                                           // counter of columns
                                 while (token_c != NULL) {                                  // while there are tokens   
                                     tokens_c[count_c] = token_c;                           // adds token to the array                  
                                     count_c++;                                             // increases counter
                                     columns++;                                             // increases columns             
-                                    token_c = strtok_r(NULL, ",", &p_c);                   // gets the next token                   
+                                    token_c = strtok_r(NULL, ", ", &p_c);                   // gets the next token                   
                                 }
                                 if (columns != rows) {                                     // if the number of columns is not the number of rows
                                     fprintf(stderr, "File format not valid\n");            // error
