@@ -7,11 +7,11 @@
 
 int main() {
     // gets the lines of the init file
-    char lines[1024];
+
     printf("Insert the init file name:\n");
     char init[100];
     scanf("%s", init);
-    read_file(init, lines);  
+    char* lines = read_file(init);  
     // gets the qubits from the init file
     int qubits;
     qubits = get_qubits(lines);  
@@ -30,13 +30,13 @@ int main() {
     }
 
     // gets the lines of the circ file
-    char lines2[1024];
+
     printf("Insert the circ file name:\n");
     char circ[100];
     scanf("%s", circ);
-    read_file(circ, lines2);
+    char* lines2 = read_file(circ);
     // gets the order from the circ file
-    char order[100];
+    char order[1024];
     get_order(lines2, order);
 
     // inverts the order of the circuit
@@ -56,6 +56,14 @@ int main() {
     all_circ = get_matrices(lines2, qubits, order, all_circ, (matrix){0}, (vector){0});
     printf("The matrices are:\n");
     print_c(all_circ, order, qubits);
+    //gets the number of threads
+    int threads;
+    printf("Insert the number of threads:\n");
+    scanf("%i", &threads);
+    if (threads < 1) {
+        fprintf(stderr, "The number of threads must be greater than 0\n");
+        return 1;
+    }
     // multiplies the matrices
     matrix product;
     product.rows = malloc(len * sizeof(vector));
@@ -92,6 +100,7 @@ int main() {
         free(product.rows[i].values);
     }
     free(product.rows);
-
+    free(lines);
+    free(lines);
     return 0;              
 }

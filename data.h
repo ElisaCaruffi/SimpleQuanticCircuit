@@ -20,7 +20,7 @@ typedef struct {
     matrix* cir;
 } circuit;
 
-void read_file(char filename[], char* lines);
+char* read_file(char filename[]);
 int get_qubits(char* lines);
 complex get_complex(char* parse);
 vector get_vin(char* lines, int qubits, vector vin);

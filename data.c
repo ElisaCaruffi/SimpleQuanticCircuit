@@ -4,9 +4,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <stdbool.h>
 
-void read_file(char filename[], char* lines) {                                          // reads the file
+char* read_file(char filename[]) {                                          // reads the file
     FILE *file = fopen(filename, "r");                                                  // opens file
+    char* lines = malloc(ftell(file));
     if (file == NULL) {                                                                 // if file doesn't exist
         perror("Error opening file");                                                   // error 
     }
@@ -21,6 +23,7 @@ void read_file(char filename[], char* lines) {                                  
     }
     fclose(file);                                                                       // closes file
     strcpy(lines, temp);                                                                // copies array
+    return lines;
 }
 
 int get_qubits(char* lines) {                                                           // gets the number of qubits
@@ -216,54 +219,53 @@ complex get_complex(char* parse) {
 }
 
 vector get_vin(char* lines, int qubits, vector vin) {                                   // gets the input vector
-    int index = 0;                                                                      // index of the input vector
-    int start = 0;                                                                      // first character
-    while (start < strlen(lines)) {                                                     // while start is less than the length
-        if (strncmp(&lines[start], "#init", 5) == 0) {                                  // if the line starts with #init
-            start += 5;                                                                 // increases start by 5
-            while (lines[start] == ' ' || lines[start] == '\t' || lines[start] == '[') {// skips spaces and tabs
-                start++;                                                                // moves to the next character
-            }                                                             
-            int end = start + 1;                                                        // starts from the next character
-            while (lines[end] != '\n' && lines[end] != '\0' && lines[end] != ']') {     // skips spaces and tabs
-                end++;                                                                  // moves to the next character  
+    int index = 0; // index of the input vector
+    int start = 0; // first character 
+    while (start < strlen(lines)) { // while start is less than the length 
+        if (strncmp(&lines[start], "#init", 5) == 0) { // if the line starts with #init 
+            start += 5; // increases start by 5 
+            while (lines[start] == ' ' || lines[start] == '\t' || lines[start] == '[') {// skips spaces and tabs 
+                start++; // moves to the next character 
             }
-            char str[100];                                                              // array
-            int len = end - start;                                                      // length of the string
-            strncpy(str, &lines[start], len);                                           // copies the string
-            str[len] = '\0';                                                            // adds null terminator            
-            int count = 0;                                                              // counter of values
-            char *p;                                                                    // pointer
-            char *token = strtok_r(str, ", ", &p);                                      // splits the string
-            char *tokens[100];                                                          // array of tokens
-            while (token != NULL) {                                                     // while there are tokens
-                tokens[count] = token;                                                  // adds token to the array
-                count++;                                                                // increases count  
-
-                token = strtok_r(NULL, ", ", &p);                                       // gets the next token
+            int end = start + 1; // starts from the next character 
+            while (lines[end] != '\n' && lines[end] != '\0' && lines[end] != ']') { // skips spaces and tabs 
+                end++; // moves to the next character 
+            } 
+            char str[100]; // array 
+            int len = end - start; // length of the string 
+            strncpy(str, &lines[start], len); // copies the string 
+            str[len] = '\0'; // adds null terminator 
+            int count = 0; // counter of values 
+            char *p; // pointer 
+            char *token = strtok_r(str, ", ", &p); // splits the string 
+            char *tokens[100]; // array of tokens 
+            while (token != NULL) { // while there are tokens 
+                tokens[count] = token; // adds token to the array 
+                count++; // increases count 
+                token = strtok_r(NULL, ", ", &p); // gets the next token 
             }
-            if (count != (int)pow(2, qubits)) {                                         // if values is not equal to 2^qubits
-                perror("Input vector not valid");                                       // error
+            if (count != (int)pow(2, qubits)) { // if values is not equal to 2^qubits 
+                perror("Input vector not valid"); // error 
             }
-            else {                                                                      // else
-                vin.length = count;                                                     // sets the length
-                for (int i = 0; i < count; i++) {                                       // iterates the tokens
-                    char *t = tokens[i];                                                // assigns token to t                                                            
-                    complex value = get_complex(t);                                     // initializes complex number   
-                    vin.values[index] = value;                                          // adds value to the input vector
-                    index++;                                                            // increases index
-                }                           
-            }  
-            break;                                                                      // breaks the loop
+            else { // else 
+                vin.length = count; // sets the length 
+                for (int i = 0; i < count; i++) { // iterates the tokens 
+                    char *t = tokens[i]; // assigns token to t 
+                    complex value = get_complex(t); // initializes complex number 
+                    vin.values[index] = value; // adds value to the input vector 
+                    index++; // increases index 
+                } 
+            } 
+            break; // breaks the loop 
         }
-        while (lines[start] != '\n' && lines[start] != '\0') {                          // skips spaces and tabs
-            start++;                                                                    // moves to the next character
+        while (lines[start] != '\n' && lines[start] != '\0') { // skips spaces and tabs 
+            start++; // moves to the next character 
         }
-        if (lines[start] == '\n') {                                                     // if the line ends
-            start++;                                                                    // moves to the next character
+        if (lines[start] == '\n') { // if the line ends 
+            start++; // moves to the next character 
         }
     }
-    return vin;                                                                         // returns the input vector   
+    return vin; // returns the input vector 
 }
 
 void get_order(char* lines, char* order) {                                              // gets the order of the circuit
@@ -344,7 +346,7 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
                     strncpy(str, &l[start], len);                                          // copies the string
                     str[len] = '\0';                                                       // adds null terminator
 
-                    if (strlen(str) == 1 && str[0] == order[j]) {                          // if the order matches the string
+                    if (str == order[j]) {                                                 // if the order matches the string
                         int s = end;                                                       // starts from the next character
                         while (l[s] != '[' && l[s] != '\0') {                              // skips spaces, tabs and (                     
                             s++;                                                           // moves to the next character         
