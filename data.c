@@ -8,32 +8,79 @@
 
 char* read_file(char filename[]) {                                          // reads the file
     FILE *file = fopen(filename, "r");                                                  // opens file
-    char* lines = malloc(ftell(file));
+
     if (file == NULL) {                                                                 // if file doesn't exist
         perror("Error opening file");                                                   // error 
     }
-    char temp[1024];                                                                    // temporary array
-    temp[0] = '\0';                                                                    // initializes the array
-    char *line = NULL;                                                                  // pointer to the first line
-    size_t len = 0;                                                                     // line's lenght
-    while (getline(&line, &len, file) != -1) {                                          // returns -1 if file ends
-        if (strncmp(line, "#", 1) == 0) {                                               // if line starts with #
-            strcat(temp, line);                                                         // concatenates the line in the array       
-        }                                                      
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+    char* temp = malloc(filesize + 1);
+    if (temp == NULL) {
+        fprintf(stderr, "Allocation error\n");
+        fclose(file);
+        return NULL;
     }
-    fclose(file);                                                                       // closes file
-    strcpy(lines, temp);                                                                // copies array
+    fread(temp, sizeof(char), filesize, file);
+    temp[filesize] = '\0';                                                      
+    char* lines = malloc(filesize + 2); 
+    if (lines == NULL) {
+        fprintf(stderr, "Allocation error\n");
+        fclose(file);
+        free(temp);
+        return NULL;
+    }
+    int i = 0;
+    int j = 0;
+    bool new = true;
+    while (temp[i] != '\0') {
+        if (new && strncmp(&temp[i], "#circ", 5) == 0) {
+            if (j > 0 && lines[j - 1] != '\n') {
+                lines[j] = '\n';
+                j++;
+            }
+            while (temp[i] != '\n' && temp[i] != '\0') {
+                lines[j] = temp[i];
+                i++;
+                j++;
+            }
+            if (temp[i] == '\n') {
+                lines[j] = temp[i];
+                i++;
+                j++;
+            }
+            new = true;
+            continue;
+        }
+        if (temp[i] == ' ' || temp[i] == '\t' || temp[i] == '\n') {
+            if (temp[i] == '\n') {
+                 new = 1;
+            }
+            i++;
+            continue;
+        }
+        new = false;
+        if (temp[i] == '#' && j != 0) {
+            lines[j] = '\n';
+            j++;
+        }
+        lines[j] = temp[i];
+        i++;
+        j++;
+    }
+    lines[j] = '\0';
+    fclose(file);
+    free(temp);
+    printf("%s\n", lines);
     return lines;
 }
 
 int get_qubits(char* lines) {                                                           // gets the number of qubits
     if (strncmp(lines, "#qubits", 7) == 0) {                                            // if the line starts with #qubits
         int start = 7;                                                                  // starts from the 8th character
-        while (lines[start] == '\t' || lines[start] == '\n' || lines[start] == ' ') {   // skips spaces and tabs
-            start++;                                                                    // moves to the next character
-        }
+
         int end = start + 1;                                                            // starts from the next character
-        while (lines[end] != ' ' && lines[end] != '\t' && lines[end] != '\n') {         // skips spaces and tabs
+        while (lines[end] != '\n') {                                                    // skips spaces and tabs
             end++;                                                                      // moves to the next character
         }
         char str[100];                                                                  // array
@@ -85,7 +132,7 @@ complex get_complex(char* parse) {
             } 
         }
         if (check == 1) {                                                           // if the are letters
-            fprintf(stderr, "File format not valid\n");                             // error
+            fprintf(stderr, "File format not valid1\n");                             // error
             free(temp1);                                                            // frees memory
             free(temp2);                                                            // frees memory
             return c;                                                               // returns complex number
@@ -134,7 +181,7 @@ complex get_complex(char* parse) {
                 }
             }
             else {                                                                  // else
-                fprintf(stderr, "File format not valid\n");                         // error 
+                fprintf(stderr, "File format not valid2\n");                         // error 
                 free(temp1);                                                        // frees memory
                 free(temp2);                                                        // frees memory
                 return c;                                                           // returns complex number
@@ -199,7 +246,7 @@ complex get_complex(char* parse) {
                 }
             }
             else {                                                                  // if the string doesn't contain i
-                fprintf(stderr, "File format not valid\n");                         // error 
+                fprintf(stderr, "File format not valid3\n");                         // error 
                 free(temp1);                                                        // frees memory
                 free(temp2);                                                        // frees memory
                 return c;                                                           // returns complex number
@@ -207,7 +254,7 @@ complex get_complex(char* parse) {
         }
     }
     else {                                                                          // if there are more than two tokens
-        fprintf(stderr, "File format not valid\n");                                 // error
+        fprintf(stderr, "File format not valid4\n");                                 // error
         free(temp1);                                                                // frees memory
         free(temp2);                                                                // frees memory
         return c;                                                                   // returns complex number
@@ -219,53 +266,53 @@ complex get_complex(char* parse) {
 }
 
 vector get_vin(char* lines, int qubits, vector vin) {                                   // gets the input vector
-    int index = 0; // index of the input vector
-    int start = 0; // first character 
-    while (start < strlen(lines)) { // while start is less than the length 
-        if (strncmp(&lines[start], "#init", 5) == 0) { // if the line starts with #init 
-            start += 5; // increases start by 5 
-            while (lines[start] == ' ' || lines[start] == '\t' || lines[start] == '[') {// skips spaces and tabs 
-                start++; // moves to the next character 
+    int index = 0;                                                                      // index of the input vector
+    int start = 0;                                                                      // first character 
+    while (start < strlen(lines)) {                                                     // while start is less than the length 
+        if (strncmp(&lines[start], "#init", 5) == 0) {                                  // if the line starts with #init 
+            start += 5;                                                                 // increases start by 5 
+            while (lines[start] == '[') {                                               // skips spaces and tabs 
+                start++;                                                                // moves to the next character 
             }
-            int end = start + 1; // starts from the next character 
-            while (lines[end] != '\n' && lines[end] != '\0' && lines[end] != ']') { // skips spaces and tabs 
-                end++; // moves to the next character 
+            int end = start + 1;                                                        // starts from the next character 
+            while (lines[end] != '\n' && lines[end] != '\0' && lines[end] != ']') {     // skips spaces and tabs 
+                end++;                                                                  // moves to the next character 
             } 
-            char str[100]; // array 
-            int len = end - start; // length of the string 
-            strncpy(str, &lines[start], len); // copies the string 
-            str[len] = '\0'; // adds null terminator 
-            int count = 0; // counter of values 
-            char *p; // pointer 
-            char *token = strtok_r(str, ", ", &p); // splits the string 
-            char *tokens[100]; // array of tokens 
-            while (token != NULL) { // while there are tokens 
-                tokens[count] = token; // adds token to the array 
-                count++; // increases count 
-                token = strtok_r(NULL, ", ", &p); // gets the next token 
+            char str[strlen(lines)];                                      // array 
+            int len = end - start;                                                      // length of the string 
+            strncpy(str, &lines[start], len);                                           // copies the string 
+            str[len] = '\0';                                                            // adds null terminator 
+            int count = 0;                                                              // counter of values 
+            char *p;                                                                    // pointer 
+            char *token = strtok_r(str, ",", &p);                                       // splits the string 
+            char *tokens[(int)pow(2, qubits) * 100];                      // array of tokens
+            while (token != NULL) {                                                     // while there are tokens 
+                tokens[count] = token;                                                  // adds token to the array 
+                count++;                                                                // increases count 
+                token = strtok_r(NULL, ",", &p);                                        // gets the next token 
             }
-            if (count != (int)pow(2, qubits)) { // if values is not equal to 2^qubits 
-                perror("Input vector not valid"); // error 
+            if (count != (int)pow(2, qubits)) {                                         // if values is not equal to 2^qubits 
+                perror("Input vector not valid");                                       // error 
             }
-            else { // else 
-                vin.length = count; // sets the length 
-                for (int i = 0; i < count; i++) { // iterates the tokens 
-                    char *t = tokens[i]; // assigns token to t 
-                    complex value = get_complex(t); // initializes complex number 
-                    vin.values[index] = value; // adds value to the input vector 
-                    index++; // increases index 
+            else {                                                                      // else 
+                vin.length = count;                                                     // sets the length 
+                for (int i = 0; i < count; i++) {                                       // iterates the tokens 
+                    char *t = tokens[i];                                                // assigns token to t 
+                    complex value = get_complex(t);                                     // initializes complex number 
+                    vin.values[index] = value;                                          // adds value to the input vector 
+                    index++;                                                            // increases index 
                 } 
             } 
-            break; // breaks the loop 
+            break;                                                                      // breaks the loop 
         }
-        while (lines[start] != '\n' && lines[start] != '\0') { // skips spaces and tabs 
-            start++; // moves to the next character 
+        while (lines[start] != '\n' && lines[start] != '\0') {                          // skips spaces and tabs 
+            start++;                                                                    // moves to the next character 
         }
-        if (lines[start] == '\n') { // if the line ends 
-            start++; // moves to the next character 
+        if (lines[start] == '\n') {                                                     // if the line ends 
+            start++;                                                                    // moves to the next character 
         }
     }
-    return vin; // returns the input vector 
+    return vin;                                                                         // returns the input vector 
 }
 
 void get_order(char* lines, char* order) {                                              // gets the order of the circuit
@@ -274,9 +321,7 @@ void get_order(char* lines, char* order) {                                      
         char *l = &lines[index];                                                        // pointer to the current line
         if (strncmp(l, "#circ", 5) == 0) {                                              // if the line starts with #circ
             int start = 5;                                                              // starts from the 6th character  
-            while (l[start] != '\t' && l[start] != ' ') {                               // skips spaces and tabs   
-                start++;                                                                // moves to the next character
-            }
+
             int end = start + 1;                                                        // starts from the next character
             while (l[end] != '\n' && l[end] != '\0') {                                  // skips spaces and tabs
                 end++;                                                                  // moves to the next character
@@ -346,7 +391,7 @@ circuit get_matrices(char* lines, int qubits, char* order, circuit all_circ, mat
                     strncpy(str, &l[start], len);                                          // copies the string
                     str[len] = '\0';                                                       // adds null terminator
 
-                    if (str == order[j]) {                                                 // if the order matches the string
+                    if (strcmp(str, order[j]) == 0) {                                                 // if the order matches the string
                         int s = end;                                                       // starts from the next character
                         while (l[s] != '[' && l[s] != '\0') {                              // skips spaces, tabs and (                     
                             s++;                                                           // moves to the next character         
